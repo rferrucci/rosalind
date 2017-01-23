@@ -9,7 +9,7 @@
 
 import re
 import itertools
-from containers import Counter
+#from containers import Counter
 	
 def fastaParse(dat):
 	#takes a set of fasta and sequences and returns two lists, one of the fasta headers and the other of the sequences
@@ -183,12 +183,34 @@ class sequence(str):
 		#print prof
 		return consensus,profile
 
-f = open('data/rosalind_cons.txt','r').readlines()
+	def transitionsTransversions(self, seq2):
+		#given two sequences, calculates the ration of transitions to transversions
+		seq1 = self.seq
+		trans={'A':'G','G':'A','C':'T','T','C'}
+		mut = [0 if trans[a]=b else 1 for a, b in izip(seq1, seq2) if a!= b]
+		r = mut.count(0)/float(mut.count(1))
+		return r
+		
+		for i in range(len(seq1)):
+			if seq1[i]==seq2[i]: continue
+			if seq1[i] in PUR and seq2[i] in PUR: trans+=1
+			elif seq1[i] in PYR and seq2[i] in PYR: trans+=1
+			else: transv+=1
+		
+		return trans/float(transv)
+
+f = open('data/rosalind_tran.txt','r').readlines()
+dat = map(lambda i: i.strip(), f)
+fasta, sequences = fastaParse(dat)
+seq = sequence(sequences[0])
+
+seq.transitionsTransversions(sequences[1])
+"""f = open('data/rosalind_cons.txt','r').readlines()
 dat = map(lambda i: i.strip(), f)
 fasta, sequences = fastaParse(dat)
 seq = sequence(sequences[0])
 seq.getConsensusSequence(sequences)
-
+"""
 """f = open('data/rosalind_gc.txt').readlines()
 fasta, sequences = fastaParse(f)
 fas=""
