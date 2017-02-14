@@ -222,16 +222,48 @@ class sequence(str):
 						break	
 				
 		return PROT
-		#return PROT
 
+	def prot2mrna(self):
+		f = open('./geneticcode.dat','r').readlines()
+		revCode = {}
+		N = 0
+		for i in f:
+			x = i.strip().split()
+			if x[1] in revCode:
+				revCode[x[1]] += 1
+			else: revCode[x[1]] = 1
+	
+		#get number of possible sequences
+		for i in range(len(seq)):
+			N *= revCode[seq[i]]
+		
+		#don't forget stop codon
+		N *= 3 
+		return N % 1000000
 
+	def splicedMotif(self, mot):
+		#given a DNA motif, find the indices of nuclotides when the motif is not contiguous
+		s = 0
+		indices = []
+		seq = self.seq
+		for i in range(len(seq)):
+			if s == len(mot): break
+			if mot[s] == seq[i]:
+				indices.append(i+1)
+				s+=1
+		return indices
+		
 #seq.transitionsTransversions(sequences[1])
-"""f = open('data/rosalind_cons.txt','r').readlines()
+f = open('data/rosalind_sseq.txt','r').readlines()
 dat = map(lambda i: i.strip(), f)
 fasta, sequences = fastaParse(dat)
+sub = f[3].strip()
 seq = sequence(sequences[0])
-seq.getConsensusSequence(sequences)
-"""
+indices = seq.splicedMotif(sub)
+
+
+indices = " ".join([str(i) for i in indices])
+print(indices)
 """f = open('data/rosalind_gc.txt').readlines()
 fasta, sequences = fastaParse(f)
 fas=""
