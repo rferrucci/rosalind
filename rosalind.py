@@ -1,14 +1,19 @@
 #!/usr/bin/env python
 
-# I wrote this class while working through exercises from the Rosalind project (http://rosalind.info/) of diyBIO. It is a set of functions for analyzing DNA sequences.
-#
-# Some background information on the name of the project: Rosalind Franklin was a biologist whose work contributed to the elucidation of the double helical structure 
-# of DNA. Dr Franklin did not share in the Noble Prize in Chemistry with Watson, Crick, and Maurice Wilkins---Watson and Crick actually deduced the structure, while
-# Wilkins developed a method for obtaining crystalized structures of nucleic acids that led to Franklin being able to determine that DNA was helical in the first place
-# for her contribution as Noble Prizes are not awarded posthumously
+# I wrote this class while working through exercises from the Rosalind project 
+# (http://rosalind.info/) of diyBIO. It is a set of functions for analyzing DNA
+# sequences. Some background information on the name of the project: Rosalind 
+# Franklin was a biologist whose work contributed to the elucidation of the 
+# double helical structure of DNA. Dr Franklin did not share in the Noble Prize
+# in Chemistry with Watson, Crick, and Maurice Wilkins---Watson and Crick 
+# actually deduced the structure, while  Wilkins developed a method for 
+# obtaining crystalized structures of nucleic acids that led to Franklin being 
+# able to determine that DNA was helical in the first place for her 
+# contribution as Noble Prizes are not awarded posthumously
 
 import re
 import itertools
+import string
 #from containers import Counter
 	
 def fastaParse(dat):
@@ -40,10 +45,11 @@ class sequence(str):
 		self.seq = dnaseq.upper()
 		self.n = len(dnaseq)
 
-	def nucleotideCount(self):
+	def nucleotideCount(self, dna='y'):
 		#return dictionary of nucleotide counts from DNA sequence
 		seq = self.seq
-		nuc = ['A','T','C','G']
+		if dna=='y': nuc = ['A','T','C','G']
+		else: nuc = ['A','U','C','G']
 		nucleotides = dict(zip(nuc, [seq.count(n) for n in nuc]))			
 		return nucleotides
 	
@@ -53,14 +59,15 @@ class sequence(str):
 		rna = re.sub('T','U',seq)
 		#seq.replace("T", "U") works as well
 		self.rna = rna
+		return rna
 	
 	def reverseComplement(self):
 		#returns the reverse complement of a strand of DNA
 		compDict= {'A':'T','T':'A','C':'G','G':'C'}
 		seq = self.seq
-		complement = ''.join([compDict[n] for n in seq])[::-1]
-		#complement = (seq[::-1].translate(str.maketrans('ACGT', 'TGCA'))) #use this approach for python 3.0
+		complement = seq[::-1].translate(string.maketrans('ATCG','TAGC'))
 		self.complement = complement
+		return(complement)
 	
 	def getGCContent(self):
 		#returns the GC content of a dna sequence
@@ -246,24 +253,28 @@ class sequence(str):
 		s = 0
 		indices = []
 		seq = self.seq
-		for i in range(len(seq)):
-			if s == len(mot): break
-			if mot[s] == seq[i]:
-				indices.append(i+1)
-				s+=1
+		
+		i = 0
+		for m in mot:
+			i = (i + seq[i:].index(m)) + 1
+			indices.append(i)
+			
+		#for i in range(len(seq)):
+		#	if s == len(mot): break
+		#	if mot[s] == seq[i]:
+		#		indices.append(i+1)
+		#x		s+=1
 		return indices
 		
 #seq.transitionsTransversions(sequences[1])
-f = open('data/rosalind_sseq.txt','r').readlines()
-dat = map(lambda i: i.strip(), f)
-fasta, sequences = fastaParse(dat)
-sub = f[3].strip()
-seq = sequence(sequences[0])
-indices = seq.splicedMotif(sub)
-
-
-indices = " ".join([str(i) for i in indices])
-print(indices)
+#f = open('data/rosalind_sseq.txt','r').readlines()
+#dat = map(lambda i: i.strip(), f)
+#fasta, sequences = fastaParse(dat)
+#sub = f[3].strip()
+#seq = sequence(sequences[0])
+#indices = seq.splicedMotif(sub)
+#indices = " ".join([str(i) for i in indices])
+#print(indices)
 """f = open('data/rosalind_gc.txt').readlines()
 fasta, sequences = fastaParse(f)
 fas=""
