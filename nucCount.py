@@ -2,7 +2,7 @@
 from rosalind import *
 
 """Solution to the Transcribing DNA into RNA problem in the Bioinformatics Stronghold section of Rosalind
-location: http://rosalind.info/problems/rna/
+location: http://rosalind.info/problems/dna/
 Problem: transcribe dna sequence to rna
 """
 
