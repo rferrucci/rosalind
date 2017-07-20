@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import random
 # I wrote this class while working through exercises from the Rosalind project 
 # (http://rosalind.info/) of diyBIO. It is a set of functions for analyzing DNA
 # sequences. Some background information on the name of the project: Rosalind 
@@ -16,28 +16,6 @@ import itertools
 import string
 #from containers import Counter
 	
-def fastaParse(dat):
-	#takes a set of fasta and sequences and returns two lists, one of the fasta headers and the other of the sequences
-	seqs = []
-	fasta = []
-	count = -1
-	for i in dat:
-		if (i[0] == '>' and count == -1): 
-			fasta.append(i.strip())
-			seqs.append("")
-			count += 1
-			#dna = ""
-		elif (i[0] == '>' and count != -1):
-			fasta.append(i.strip())
-			seqs.append("")
-			count += 1
-			#dna = ""
-		elif (i == '\n'):
-			continue
-		else:
-			seqs[count]+=i.strip()
-	return fasta, seqs
-
 class sequence(str):
 	#since a DNA sequence is essentially a string, I felt it appropriate to inherit from the string class
 	def __init__(self, dnaseq):
@@ -133,11 +111,10 @@ class sequence(str):
 		for i in range(1, len(seq1)):
 			seqLength = len(seq1) - i + 1
 			for j in range(0, len(seq2)-seqLength + 1):
-				#print seqLength
 				motif=seq1[j:j+seqLength]
 				if seq2.find(motif)!=-1: 
 					motifs.append(motif)
-		#print seq
+		
  		for seq in seqs[1:]:
 			for m in motifs:
 				if seq.find(m)==-1:
@@ -145,22 +122,24 @@ class sequence(str):
 		
 		return motifs
 	
-	def findRestrictionSites(self, R):
+	"""def findRestrictionSites(self, R):
+		#not working at the moment
 		#finds restriction sites in length of DNA. First obtain the reverse complement using the appopriate method from this pacakge
 		#returns tuple with location, sequence, and length. R is maximum length of restriction sites
 		seq = self.seq
 		complement = self.complement
 		
 		restrictionSites=[]
-		for i in range(0, len(seq)):
-			for n in range(4,R+1,2):
-				s = seq[i:i+n]
+		
+		for n in range(4,R+1,2):
+			for i in range(0, len(seq)-n):
+				s = seq[i:i+n]				
 				r = complement[i:i+n]
 				r = r[::-1]
 				if len(seq) -i < n: continue
 				if s==r: restrictionSites.append((i+1, r, n))
-				
-		return restrictionSites
+		
+		return restrictionSites"""
 
 	def getConsensusSequence(self, sequences):
 		#returns consensus sequences amongst set of sequences
@@ -183,14 +162,14 @@ class sequence(str):
 		#profile = [{base: [sequences[j][i] for j in range(len(sequences))].count(base) for base in 'ACTG'} for i in range(len(sequences[0]))]
 
 		self.consensus = consensus #maybe should set up profile as attribute as well
-		#print consensus
-		
+		self.profile = profile
 		#this just creates the profile table for the problem
 		#prof = '\n'.join(["%s: %s\n" %(n, ' '.join([str(profile[i][n]) for i in range(len(seq))])) for n in nuc])
 		#print prof
 		return consensus,profile
 
 	def transitionsTransversions(self, seq2):
+		from itertools import izip #don't need in python 3
 		#given two sequences, calculates the ration of transitions to transversions
 		seq1 = self.seq
 		trans={'A':'G','G':'A','C':'T','T':'C'}
@@ -198,13 +177,13 @@ class sequence(str):
 		r = mut.count(0)/float(mut.count(1))
 		return r
 		
-		for i in range(len(seq1)):
+		"""for i in range(len(seq1)):
 			if seq1[i]==seq2[i]: continue
 			if seq1[i] in PUR and seq2[i] in PUR: trans+=1
 			elif seq1[i] in PYR and seq2[i] in PYR: trans+=1
 			else: transv+=1
 		
-		return trans/float(transv)
+		return trans/float(transv)"""
 
 	def getORF(self):
 		#takes rna sequence and outputs list of protein sequences based on ORF from start to stop codons
@@ -232,23 +211,25 @@ class sequence(str):
 
 	def prot2mrna(self):
 		f = open('./geneticcode.dat','r').readlines()
+		seq = self.seq
+
 		revCode = {}
-		N = 0
+		N = 1
 		for i in f:
 			x = i.strip().split()
 			if x[1] in revCode:
 				revCode[x[1]] += 1
 			else: revCode[x[1]] = 1
-	
+		
 		#get number of possible sequences
 		for i in range(len(seq)):
 			N *= revCode[seq[i]]
-		
 		#don't forget stop codon
 		N *= 3 
 		return N % 1000000
 
-	def splicedMotif(self, mot):
+	"""def splicedMotif(self, mot):
+		#not working
 		#given a DNA motif, find the indices of nuclotides when the motif is not contiguous
 		s = 0
 		indices = []
@@ -264,57 +245,8 @@ class sequence(str):
 		#	if mot[s] == seq[i]:
 		#		indices.append(i+1)
 		#x		s+=1
-		return indices
+		return indices"""
 		
-#seq.transitionsTransversions(sequences[1])
-#f = open('data/rosalind_sseq.txt','r').readlines()
-#dat = map(lambda i: i.strip(), f)
-#fasta, sequences = fastaParse(dat)
-#sub = f[3].strip()
-#seq = sequence(sequences[0])
-#indices = seq.splicedMotif(sub)
-#indices = " ".join([str(i) for i in indices])
-#print(indices)
-"""f = open('data/rosalind_gc.txt').readlines()
-fasta, sequences = fastaParse(f)
-fas=""
-GC=0
-for i in range(len(fasta)):
-	seq = sequence(sequences[i].strip())
-	gc= seq.getGCContent()
-	if gc > GC: 
-		fas = fasta[i]
-		GC = gc
-	
-print "%s\n%.6f" %(fas,GC)"""
-	#gc = 
-"""f=open('rosalind_splc.txt','r').readlines()
-
-fasta, sequences = fastaParse(f)
-
-dna = sequences[0].strip()
-
-introns=[]
-for i in sequences[1:]:
-	INT = i.strip()
-	introns.append(INT)
-seq = sequence(dna)
-seq.spliceIntrons(introns)
-
-
-dna = sequence(seq.mDNA)
-dna.convertToRNA()
-rna = sequence(dna.rna)
-
-rna.getProteinSequence()"""
-
-#dna = sequence(seq.mDNA)
-
-#print seq.rna
-
-
-#print prot
-
 #------------------------------------------------------------------------------#
 #accesory functions
 #------------------------------------------------------------------------------#
@@ -341,30 +273,13 @@ def fastaParse(dat):
 		else:
 			seqs[count]+=i.strip()
 	return fasta, seqs
-
-
-"""fasta, sequences = fastaParse(f)
-introns=[]
-for i in sequences[1:]:
-	INT = i.strip()
-	introns.append(INT)"""
 	
-
-"""dat = map(i.strip(), open('data/rosalind_revp.txt','r').readlines())
-
-fasta, seqs = fastaParse(dat)
-seq = sequence(seqs[0].strip())
-
-seq.reverseComplement()
-seq.findRestrictionSites(12)"""
-
 #------------------------------------------------------------------------------#
 #not included in the class. demonstrative
 #------------------------------------------------------------------------------#
 
 def Mendel(pops, P):
 	#demonstrates Mendel's First Law. P is number of simulations to run.
-	import random
 	p = 0
 	A = 0
 	a = 1
@@ -380,7 +295,8 @@ def Mendel(pops, P):
 		a1 = random.sample(samp[0],1)[0]
 		a2 = random.sample(samp[1],1)[0]
 		if a1==0 or a2 == 0: p+=1
-	#print p/float(P)
+		
+	simulated = p/float(P)
 	#to figure out mathmatically
 	N = float(k + m + n)
 
@@ -389,15 +305,12 @@ def Mendel(pops, P):
 	h_r = (m /N) * (n / (N - 1)) +  (n / N) * (m / (N - 1))
 
 	recessive = r_r + h_h * 1/4.0 + h_r * 1/2.0
-	dominant= 1 - recessive
+	calculated= 1 - recessive
+	return simulated, calculated
 
-#seq = 'AAAACCCGGT'
-
-#pops = k,m,n
-#Mendel(pops,10000)
-
-def calculatingExpOffspring(f='rosalind_iev.txt'):
-	#takes list of number of couple pairs with a given genotype: AA-AA, AA-Aa, AA-aa, Aa-Aa, Aa-aa, aa-aa and returns the expected number of those with the 
+def calculatingExpOffspring(f='data/rosalind_iev.txt'):
+	#takes list of number of couple pairs with a given genotype: AA-AA, AA-Aa, 
+	#AA-aa, Aa-Aa, Aa-aa, aa-aa and returns the expected number of those with the 
 	#dom phenotype
 	f = open(f,'r')
 	couplePairs = [float(x) for x in f.readline().split()]
@@ -411,7 +324,7 @@ def calculatingExpOffspring(f='rosalind_iev.txt'):
 	return p
 
 def rabbitPairs(numMonths, numOffspring):
-	#code for Rabbits and Recurrence Relations problem. Cannot seem to get it to solve the problem properly
+	#code for Rabbits and Recurrence Relations problem.
 	F = []
 	for n in range(numMonths):
 		if n == 0:
@@ -423,12 +336,3 @@ def rabbitPairs(numMonths, numOffspring):
 			F.append(f)
 
 	return F[-1]
-	
-#print rabbitPairs(5, 3)
-#pairs = rabbitPairs(5, 3)
-#print pairs
-#use to test the GC code
-
-
-#print(rna.seq)		
-#nucleotideCount(dna)		
