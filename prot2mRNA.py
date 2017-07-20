@@ -23,4 +23,4 @@ def prot2mrna(seq):
 if __name__ == "__main__":
 
     seq = open('data/rosalind_mrna.txt').read().strip()
-    print prot2mrna(seq)
+    print (prot2mrna(seq))
