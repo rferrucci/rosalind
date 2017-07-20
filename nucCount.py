@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from rosalind import *
 
-"""Solution to problem in the Bioinformatics Stronghold section of Rosalind
+"""Solution to the Counting DNA Nucleotides problem in the Bioinformatics Stronghold section of Rosalind
 location: http://rosalind.info/problems/dna/
 Problem: return count of nucleotides for given DNA sequence
 """
