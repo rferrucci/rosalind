@@ -2,21 +2,27 @@
 
 import rosalind
 
-f = open('data/rosalind_orf.txt','r').readlines()
-dat = map(lambda i: i.strip(), f)
-fasta, sequences = rosalind.fastaParse(dat)
-seq = rosalind.sequence(sequences[0])
+"""Solution to the Openm Reading Frames problem in the Bioinformatics Stronghold section of Rosalind
+location: http://rosalind.info/problems/lcsm/
+Problem: find all possible protein strings along a sequence of dna.
+"""
 
-seq.convertToRNA()
-rna = rosalind.sequence(seq.rna)
-seq.reverseComplement()
-comp = rosalind.sequence(seq.complement)
+if __name__ == "__main__":
+	f = open('data/rosalind_orf.txt','r').readlines()
+	dat = map(lambda i: i.strip(), f)
+	fasta, sequences = rosalind.fastaParse(dat)
+	seq = rosalind.sequence(sequences[0])
 
-ORF = rna.getORF()
+	seq.convertToRNA()
+	rna = rosalind.sequence(seq.rna)
+	seq.reverseComplement()
+	comp = rosalind.sequence(seq.complement)
 
-comp.convertToRNA()
-rna = rosalind.sequence(comp.rna)
-ORF += rna.getORF()
+	ORF = rna.getORF()
 
-for p in set(ORF):
-	print p
+	comp.convertToRNA()
+	rna = rosalind.sequence(comp.rna)
+	ORF += rna.getORF()
+
+	for p in set(ORF):
+		print p
