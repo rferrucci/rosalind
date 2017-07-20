@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import random
+#from string import maketrans
+
 # I wrote this class while working through exercises from the Rosalind project 
 # (http://rosalind.info/) of diyBIO. It is a set of functions for analyzing DNA
 # sequences. Some background information on the name of the project: Rosalind 
@@ -16,6 +18,28 @@ import itertools
 import string
 #from containers import Counter
 	
+def fastaParse(dat):
+	#takes a set of fasta and sequences and returns two lists, one of the fasta headers and the other of the sequences
+	seqs = []
+	fasta = []
+	count = -1
+	for i in dat:
+		if (i[0] == '>' and count == -1): 
+			fasta.append(i.strip())
+			seqs.append("")
+			count += 1
+			#dna = ""
+		elif (i[0] == '>' and count != -1):
+			fasta.append(i.strip())
+			seqs.append("")
+			count += 1
+			#dna = ""
+		elif (i == '\n'):
+			continue
+		else:
+			seqs[count]+=i.strip()
+	return fasta, seqs
+
 class sequence(str):
 	#since a DNA sequence is essentially a string, I felt it appropriate to inherit from the string class
 	def __init__(self, dnaseq):
@@ -41,11 +65,11 @@ class sequence(str):
 	
 	def reverseComplement(self):
 		#returns the reverse complement of a strand of DNA
-		compDict= {'A':'T','T':'A','C':'G','G':'C'}
+		#compDict= {'A':'T','T':'A','C':'G','G':'C'}
 		seq = self.seq
-		complement = seq[::-1].translate(string.maketrans('ATCG','TAGC'))
+		complement = seq[::-1].translate(str.maketrans('ATCG','TAGC'))
 		self.complement = complement
-		return(complement)
+		return complement
 	
 	def getGCContent(self):
 		#returns the GC content of a dna sequence
@@ -56,31 +80,23 @@ class sequence(str):
 	
 	def pointMutations(self, seq2, freq=0):
 		#returns number of point mutations between a pair of sequences. changing option freq to be equal to one will output frequency of point mutations
-		seq = self.seq
+		seq1 = self.seq
 		n = self.n
 		m = 0
 
-		mut = sum([(1 if seq[i] != seq2[i] else 0) for i in range(len(seq))])
-		#mut = sum(a != b for a, b in itertools.izip(s1, s2))   #apparently this is much faster and saves memory
+		mut = sum(a != b for a, b in zip(seq1, seq2))  
+
 		if freq==0: return mut
 		if freq==1: return mut/float(n)
 
 	def getProteinSequence(self):
 		#translates RNA sequence in corresponding aa sequence. Genetic code is obtained from geneticcode.dat
-		geneticcode = {}
-		for i in open('geneticcode.dat','r'):
-			x = i.split()
-			geneticcode[x[0]] = x[1]
+		f = open('geneticcode.dat','r').readlines()
+		geneticcode = {c: a for c, a in [l.split() for l in f]}
 			
-		#geneticcode =	{c:a for c,a in [s.strip().split(' ') for s in open('geneticcode.dat','r') ]} more elegant approach than mine
-
 		seq=self.seq
 		protein = ""
-		for i in range(0,len(seq),3):
-			codon = ''.join(seq[i:i+3])
-			protein += geneticcode[codon]
-			
-		#protein = ''.join([geneticcode[''.join(seq[i:i+3])]for i in range(0,len(seq),3) ]) bit more elegant
+		protein = ''.join([geneticcode[seq[i:i+3]] for i in range(0, len(seq), 3)])
 		self.protein = protein.rstrip('Stop')
 	
 	def findMotif(self,motif):
@@ -110,16 +126,20 @@ class sequence(str):
 		motifs = []
 		for i in range(1, len(seq1)):
 			seqLength = len(seq1) - i + 1
+			#first we prepare a list of motifs shared between the 
+			#first two sequences
 			for j in range(0, len(seq2)-seqLength + 1):
 				motif=seq1[j:j+seqLength]
 				if seq2.find(motif)!=-1: 
 					motifs.append(motif)
-		
- 		for seq in seqs[1:]:
-			for m in motifs:
-				if seq.find(m)==-1:
-					motifs.remove(m)
-		
+			
+			#compare the list of motifs to each additional sequence, removing
+			# motifs not found
+			for seq in seqs[1:]:
+				for m in motifs:
+					if seq.find(m)==-1:
+						motifs.remove(m)
+
 		return motifs
 	
 	"""def findRestrictionSites(self, R):
@@ -144,47 +164,30 @@ class sequence(str):
 	def getConsensusSequence(self, sequences):
 		#returns consensus sequences amongst set of sequences
 		seq = self.seq
-		# use list comprehension for create dictionary of nucleotides for each nucleotide position. Dictionary comprehension makes dictionary of nucleaotides
-		# with counts set to zero for each position. 
 		nuc = 'ATCG'
+
 		#group nucleoties by position
-		columns = zip(*sequences)
-		
+		columns = list(zip(*sequences))
+
 		#create profile of counts for each nucleotide for each position
-		profile = [{n: columns[i].count(n) for n in nuc} for i in range(len(columns))]
+		n = len(columns)
+		profile = [{n: columns[i].count(n) for n in nuc} for i in range(n)]
 		
 		#generate consensus sequence based on the maximum frequency for each nucleatde
 		consensus = ''.join([max(profile[i].keys(), key=(lambda k: profile[i][k])) for i in range(len(profile))])
 		
-		#profile = [ {n: 0 for n in nuc} for i in range(len(sequences[0]))]
-		
-		#tabulate numbers for each nucleotide along each position of the sequence
-		#profile = [{base: [sequences[j][i] for j in range(len(sequences))].count(base) for base in 'ACTG'} for i in range(len(sequences[0]))]
-
-		self.consensus = consensus #maybe should set up profile as attribute as well
+		self.consensus = consensus
 		self.profile = profile
-		#this just creates the profile table for the problem
-		#prof = '\n'.join(["%s: %s\n" %(n, ' '.join([str(profile[i][n]) for i in range(len(seq))])) for n in nuc])
-		#print prof
 		return consensus,profile
 
 	def transitionsTransversions(self, seq2):
-		from itertools import izip #don't need in python 3
 		#given two sequences, calculates the ration of transitions to transversions
 		seq1 = self.seq
 		trans={'A':'G','G':'A','C':'T','T':'C'}
-		mut = [0 if trans[a]==b else 1 for a, b in izip(seq1, seq2) if a!= b]
+		mut = [0 if trans[a]==b else 1 for a, b in zip(seq1, seq2) if a!= b]
 		r = mut.count(0)/float(mut.count(1))
 		return r
 		
-		"""for i in range(len(seq1)):
-			if seq1[i]==seq2[i]: continue
-			if seq1[i] in PUR and seq2[i] in PUR: trans+=1
-			elif seq1[i] in PYR and seq2[i] in PYR: trans+=1
-			else: transv+=1
-		
-		return trans/float(transv)"""
-
 	def getORF(self):
 		#takes rna sequence and outputs list of protein sequences based on ORF from start to stop codons
 		rna = self.seq
@@ -193,7 +196,7 @@ class sequence(str):
 		genCode = {i.split()[0]: i.split()[1] for i in f}
 		#get locations of start codons
 		
-		PROT= []
+		Prot= []
 		for i in range(len(rna)-2):
 			if rna[i:i+3] == "AUG":
 				#start protein sequence once start codon is found
@@ -204,10 +207,18 @@ class sequence(str):
 						prot+=genCode[rna[j:j+3]]
 					else:
 						#once stop codon is encountered, add protein to list of sequences and start over.
-						PROT.append(prot)
+						Prot.append(prot)
 						break	
 				
-		return PROT
+		return Prot
+	
+	def proteinMass(self):
+		prot = self.seq
+		f = open("proteinmass.txt", 'r').readlines()
+		dat = [l.split() for l in f]
+		masstable = {a:float(m) for a, m in dat}
+		mass = sum(masstable[aa] for aa in prot)
+		print(mass)
 
 	def prot2mrna(self):
 		f = open('./geneticcode.dat','r').readlines()
@@ -226,6 +237,7 @@ class sequence(str):
 			N *= revCode[seq[i]]
 		#don't forget stop codon
 		N *= 3 
+
 		return N % 1000000
 
 	"""def splicedMotif(self, mot):
@@ -317,10 +329,7 @@ def calculatingExpOffspring(f='data/rosalind_iev.txt'):
 
 	prob = [1.0,1.0,1.0,0.75,0.5,0]
 
-	p = sum([2 * a * b for a, b in itertools.izip(couplePairs, prob)])
-	#p = 0
-	#for i in range(len(couplePairs)):
-	#    p += prob[i] * couplePairs[i] * 2 
+	p = sum([2 * a * b for a, b in zip(couplePairs, prob)])
 	return p
 
 def rabbitPairs(numMonths, numOffspring):
