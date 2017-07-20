@@ -141,25 +141,6 @@ class sequence(str):
 						motifs.remove(m)
 
 		return motifs
-	
-	"""def findRestrictionSites(self, R):
-		#not working at the moment
-		#finds restriction sites in length of DNA. First obtain the reverse complement using the appopriate method from this pacakge
-		#returns tuple with location, sequence, and length. R is maximum length of restriction sites
-		seq = self.seq
-		complement = self.complement
-		
-		restrictionSites=[]
-		
-		for n in range(4,R+1,2):
-			for i in range(0, len(seq)-n):
-				s = seq[i:i+n]				
-				r = complement[i:i+n]
-				r = r[::-1]
-				if len(seq) -i < n: continue
-				if s==r: restrictionSites.append((i+1, r, n))
-		
-		return restrictionSites"""
 
 	def getConsensusSequence(self, sequences):
 		#returns consensus sequences amongst set of sequences
@@ -219,6 +200,25 @@ class sequence(str):
 		masstable = {a:float(m) for a, m in dat}
 		mass = sum(masstable[aa] for aa in prot)
 		print(mass)
+		
+	def findRestrictionSites(self, R):
+		#finds restriction sites in length of DNA. First obtain the reverse complement using the appopriate method from this pacakge
+		#returns tuple with location, sequence, and length. R is maximum length of restriction sites
+		seq = self.seq
+		trans = str.maketrans('ACTG','TGAC')
+		#complement = self.complement
+		restrictionSites=[]
+		print(seq)
+		#print(complement)
+		for i in range(0, len(seq)):	
+			for n in range(4,R+1,2):
+				s = seq[i:i+n]
+				if len(s) < n: continue
+				r = s[::-1].translate(trans)
+				if len(seq) -i < n: continue
+				if s==r: restrictionSites.append((i+1, r, n))
+
+		return restrictionSites
 
 	def prot2mrna(self):
 		f = open('./geneticcode.dat','r').readlines()
@@ -240,14 +240,15 @@ class sequence(str):
 
 		return N % 1000000
 
-	"""def splicedMotif(self, mot):
-		#not working
+	def splicedMotif(self, mot):
+		#works to find first spliced motif, looking for finding all
 		#given a DNA motif, find the indices of nuclotides when the motif is not contiguous
 		s = 0
 		indices = []
-		seq = self.seq
-		
+		seq = self.seq			 
+					
 		i = 0
+					
 		for m in mot:
 			i = (i + seq[i:].index(m)) + 1
 			indices.append(i)
@@ -256,8 +257,8 @@ class sequence(str):
 		#	if s == len(mot): break
 		#	if mot[s] == seq[i]:
 		#		indices.append(i+1)
-		#x		s+=1
-		return indices"""
+		#		s+=1
+		return indices
 		
 #------------------------------------------------------------------------------#
 #accesory functions
