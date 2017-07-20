@@ -20,4 +20,4 @@ if __name__ == "__main__":
 			fas = fasta[i]
 			GC = gc
 	
-	print "%s\n%.6f" %(fas,GC)
+	print ("%s\n%.6f" %(fas,GC))
