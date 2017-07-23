@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import random
+from itertools import permutations
+from math import *
 #from string import maketrans
 
 # I wrote this class while working through exercises from the Rosalind project 
@@ -346,3 +348,55 @@ def rabbitPairs(numMonths, numOffspring):
 			F.append(f)
 
 	return F[-1]
+
+def longestIncreasingSubsequence(n, seq):
+	"""find longest increasing or decreasing subsequence given an array of integers
+	"""
+	P = [None for i in range(n)]
+	M = [None for i in range(n + 1)]
+	L = 0
+
+	for i in range(n):
+		lo = 1
+		hi = L
+
+		while (lo <= hi):
+			mid = (lo+hi)/2
+			if seq[M[mid]] < seq[i]:
+				lo = mid + 1
+			else:
+				hi = mid - 1
+
+		newL = lo
+		P[i] = M[newL - 1]
+		M[newL] = i
+
+		if newL > L:
+			L = newL
+
+	S = []
+	k = M[L]
+	for i in range(L-1, -1, -1):
+		S.append(seq[k])
+
+		k = P[k]
+
+	return(S[::-1])
+
+def randomStrings(seq, GC):
+	Prob = []
+	for gc in GC:
+		GC = {'C': gc/2, 'G':gc/2, 'T': (1-gc)/2, 'A': (1-gc)/2}
+
+		prob = sum(map(log10,[GC[s] for s in seq]))
+		Prob.append(prob)
+	return Prob
+
+def geneOrders(n):
+	N = [i + 1 for i in range(0, n)]
+	perm = []
+	
+	for p in permutations(N):
+		perm.append(' '.join(map(str, p)))
+	
+	return perm
