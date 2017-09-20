@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import random
-from itertools import permutations
+from itertools import permutations, product
 from math import *
 #from string import maketrans
 
@@ -323,15 +323,10 @@ def Mendel(pops, P):
 	calculated= 1 - recessive
 	return simulated, calculated
 
-def calculatingExpOffspring(f='data/rosalind_iev.txt'):
+def calculatingExpOffspring(couplePairs, prob):
 	#takes list of number of couple pairs with a given genotype: AA-AA, AA-Aa, 
 	#AA-aa, Aa-Aa, Aa-aa, aa-aa and returns the expected number of those with the 
 	#dom phenotype
-	f = open(f,'r')
-	couplePairs = [float(x) for x in f.readline().split()]
-
-	prob = [1.0,1.0,1.0,0.75,0.5,0]
-
 	p = sum([2 * a * b for a, b in zip(couplePairs, prob)])
 	return p
 
@@ -346,8 +341,18 @@ def rabbitPairs(numMonths, numOffspring):
 		else:
 			f = F[n-1] + F[n-2]*numOffspring
 			F.append(f)
-
 	return F[-1]
+
+def mortalFibRabbits(numMonths, lifespan):
+	F = []
+	Ages = [0 for i in range(lifespan)]
+	Ages[0] = 1
+
+	for n in range(numMonths - 1):
+		f = sum(Ages[1:])
+		Ages.pop()
+		Ages.insert(0, f)
+	return Ages
 
 def longestIncreasingSubsequence(n, seq):
 	"""find longest increasing or decreasing subsequence given an array of integers
@@ -382,6 +387,24 @@ def longestIncreasingSubsequence(n, seq):
 		k = P[k]
 
 	return(S[::-1])
+
+def kmerLex(letters, sequence, k=4):
+	kmers = [''.join(p) for p in product(letter, repeat=4)]
+	kMers = {k:0 for k in kmers}
+
+	for i in range(len(sequence) - k):
+		kMers[sequence[i:i+k]] +=1
+
+	return kmers, kMers
+
+def overlapGraphs(fasta, seqs, k):
+	fasta = [f.lstrip(">") for f in fasta]
+	adjList = []
+	for i in range(0, len(seqs)-1):
+		for j in range(i + 1, len(seqs)):
+			if seqs[i][-3:] == seqs[j][:3]:
+				adjList.append((fasta[i], fasta[j]))
+	return adjList
 
 def randomStrings(seq, GC):
 	Prob = []
